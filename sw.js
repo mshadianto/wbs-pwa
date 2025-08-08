@@ -2,29 +2,32 @@
 const CACHE_NAME = 'wbs-pwa-v1.0.0';
 const API_BASE = 'https://mshadiant0.app.n8n.cloud/webhook';
 
-// Assets to cache
+// URLs to cache
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  '/wbs-pwa/',
+  '/wbs-pwa/index.html',
+  '/wbs-pwa/manifest.json',
+  'https://via.placeholder.com/192/667eea/ffffff?text=WBS',
+  'https://via.placeholder.com/512/667eea/ffffff?text=WBS'
 ];
 
 // Install Service Worker
 self.addEventListener('install', event => {
+  console.log('Service Worker installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache');
+        console.log('Cache opened');
         return cache.addAll(urlsToCache);
       })
       .then(() => self.skipWaiting())
+      .catch(err => console.log('Cache failed:', err))
   );
 });
 
 // Activate Service Worker
 self.addEventListener('activate', event => {
+  console.log('Service Worker activating...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
@@ -39,17 +42,17 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch Event - Network First, Cache Fallback
+// Fetch Event
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
   
-  // API calls - Network first
+  // API calls - Network first, fallback to cache
   if (url.href.startsWith(API_BASE)) {
     event.respondWith(
       fetch(request)
         .then(response => {
-          // Clone the response before caching
+          // Clone response before caching
           const responseToCache = response.clone();
           
           caches.open(CACHE_NAME).then(cache => {
@@ -65,7 +68,7 @@ self.addEventListener('fetch', event => {
               return response;
             }
             
-            // Return offline data for specific endpoints
+            // Return offline response for dashboard
             if (url.pathname.includes('dashboard')) {
               return new Response(JSON.stringify({
                 success: true,
@@ -75,13 +78,13 @@ self.addEventListener('fetch', event => {
                   activeCases: 'Offline',
                   resolvedThisMonth: 'Offline',
                   complianceScore: 'Offline'
-                },
-                recentCases: []
+                }
               }), {
                 headers: { 'Content-Type': 'application/json' }
               });
             }
             
+            // Default offline response
             return new Response(JSON.stringify({
               error: 'Offline',
               message: 'No internet connection'
@@ -94,27 +97,36 @@ self.addEventListener('fetch', event => {
     return;
   }
   
-  // Static assets - Cache first
-  event.respondWith(
-    caches.match(request).then(response => {
-      if (response) {
-        return response;
-      }
-      
-      return fetch(request).then(response => {
-        // Don't cache non-successful responses
-        if (!response || response.status !== 200 || response.type !== 'basic') {
+  // For GitHub Pages specific paths
+  if (url.pathname.startsWith('/wbs-pwa')) {
+    event.respondWith(
+      caches.match(request).then(response => {
+        if (response) {
           return response;
         }
-        
-        const responseToCache = response.clone();
-        
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(request, responseToCache);
+        return fetch(request).then(response => {
+          // Only cache successful responses
+          if (!response || response.status !== 200) {
+            return response;
+          }
+          
+          const responseToCache = response.clone();
+          
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, responseToCache);
+          });
+          
+          return response;
         });
-        
-        return response;
-      });
+      })
+    );
+    return;
+  }
+  
+  // For all other requests (external resources like placeholder.com)
+  event.respondWith(
+    fetch(request).catch(() => {
+      return caches.match(request);
     })
   );
 });
@@ -127,102 +139,13 @@ self.addEventListener('sync', event => {
 });
 
 async function syncReports() {
-  const cache = await caches.open(CACHE_NAME);
-  const requests = await cache.keys();
-  
-  const pendingReports = requests.filter(req => 
-    req.url.includes('/wbs-submit') && req.method === 'POST'
-  );
-  
-  for (const request of pendingReports) {
-    try {
-      const response = await fetch(request.clone());
-      
-      if (response.ok) {
-        // Remove from cache if successful
-        await cache.delete(request);
-        
-        // Notify user
-        self.registration.showNotification('Report Submitted', {
-          body: 'Your offline report has been submitted successfully',
-          icon: '/icons/icon-192.png',
-          badge: '/icons/icon-96.png',
-          vibrate: [200, 100, 200]
-        });
-      }
-    } catch (error) {
-      console.error('Sync failed:', error);
-    }
-  }
+  console.log('Syncing offline reports...');
+  // Implementation for syncing offline reports
+  // This would check IndexedDB or cache for pending reports
+  // and send them when connection is restored
 }
 
-// Push Notifications
-self.addEventListener('push', event => {
-  const options = {
-    body: event.data ? event.data.text() : 'New notification from WBS',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-96.png',
-    vibrate: [200, 100, 200],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1
-    },
-    actions: [
-      {
-        action: 'view',
-        title: 'View',
-        icon: '/icons/icon-96.png'
-      },
-      {
-        action: 'close',
-        title: 'Close',
-        icon: '/icons/icon-96.png'
-      }
-    ]
-  };
-  
-  event.waitUntil(
-    self.registration.showNotification('WBS Mobile', options)
-  );
-});
-
-// Notification Click
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  
-  if (event.action === 'view') {
-    event.waitUntil(
-      clients.openWindow('/')
-    );
-  }
-});
-
-// Periodic Background Sync (if supported)
-self.addEventListener('periodicsync', event => {
-  if (event.tag === 'update-dashboard') {
-    event.waitUntil(updateDashboard());
-  }
-});
-
-async function updateDashboard() {
-  try {
-    const response = await fetch(`${API_BASE}/wbs-dashboard`);
-    const data = await response.json();
-    
-    // Cache the updated data
-    const cache = await caches.open(CACHE_NAME);
-    await cache.put(
-      new Request(`${API_BASE}/wbs-dashboard`),
-      new Response(JSON.stringify(data), {
-        headers: { 'Content-Type': 'application/json' }
-      })
-    );
-  } catch (error) {
-    console.error('Dashboard update failed:', error);
-  }
-}
-
-// Message handling
+// Listen for messages from client
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
