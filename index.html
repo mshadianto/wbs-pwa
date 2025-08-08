@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WBS Mobile - Whistleblowing System</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="WBS Mobile">
+    <meta name="application-name" content="WBS Mobile">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- iOS Icons -->
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png">
+    
+    <!-- Splash Screens iOS -->
+    <link rel="apple-touch-startup-image" href="splash/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
+    <link rel="apple-touch-startup-image" href="splash/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
+    <link rel="apple-touch-startup-image" href="splash/splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)">
+    <link rel="apple-touch-startup-image" href="splash/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #48bb78;
+            --danger: #f56565;
+            --warning: #ed8936;
+            --dark: #2d3748;
+            --light: #f7fafc;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --safe-area-inset-top: env(safe-area-inset-top);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-top: var(--safe-area-inset-top);
+            padding-bottom: var(--safe-area-inset-bottom);
+        }
+        
+        /* Mobile App Header */
+        .app-header {
+            background: white;
+            box-shadow: var(--shadow);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            padding-top: var(--safe-area-inset-top);
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+        }
+        
+        .app-logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .logo-icon {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--dark);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+        
+        .icon-btn:active {
+            background: rgba(0,0,0,0.1);
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 1000;
+            padding-bottom: var(--safe-area-inset-bottom);
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem 0;
+        }
+        
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem;
+            color: #a0aec0;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .nav-item.active {
+            color: var(--primary);
+        }
+        
+        .nav-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .nav-label {
+            font-size: 0.75rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 5rem 1rem 5rem;
+            min-height: 100vh;
+        }
+        
+        /* Screens */
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .required {
+            color: var(--danger);
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 0.875rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: white;
+            -webkit-appearance: none;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: var(--dark);
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .action-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .action-card:active {
+            transform: scale(0.95);
+        }
+        
+        .action-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .action-title {
+            color: var(--dark);
+            font-weight: 600;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            color: #718096;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        
+        /* Alert */
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: none;
+            animation: slideDown 0.3s;
+        }
+        
+        .alert.show {
+            display: block;
+        }
+        
+        .alert-success {
+            background: #c6f6d5;
+            color: #276749;
+            border-left: 4px solid var(--success);
+        }
+        
+        .alert-error {
+            background: #fed7d7;
+            color: #c53030;
+            border-left: 4px solid var(--danger);
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Status Badge */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-critical { background: #fed7d7; color: #c53030; }
+        .badge-high { background: #fed7aa; color: #c05621; }
+        .badge-medium { background: #bee3f8; color: #2c5282; }
+        .badge-low { background: #e2e8f0; color: #4a5568; }
+        
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .loading-overlay.show {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid white;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Case List */
+        .case-list {
+            margin-top: 1rem;
+        }
+        
+        .case-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .case-info h4 {
+            color: var(--dark);
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .case-info p {
+            color: #718096;
+            font-size: 0.8rem;
+        }
+        
+        /* Install Prompt */
+        .install-prompt {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            position: fixed;
+            bottom: 100px;
+            left: 1rem;
+            right: 1rem;
+            z-index: 999;
+            display: none;
+            animation: slideUp 0.3s;
+        }
+        
+        .install-prompt.show {
+            display: block;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Offline Banner */
+        .offline-banner {
+            background: var(--warning);
+            color: white;
+            padding: 0.5rem;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 9999;
+            display: none;
+        }
+        
+        .offline-banner.show {
+            display: block;
+        }
+        
+        /* Pull to Refresh */
+        .pull-to-refresh {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            display: none;
+            z-index: 999;
+        }
+        
+        .pull-to-refresh.show {
+            display: block;
+            animation: bounce 1s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Offline Banner -->
+    <div id="offlineBanner" class="offline-banner">
+        📡 Offline Mode - Data may not be up to date
+    </div>
+    
+    <!-- Pull to Refresh -->
+    <div id="pullToRefresh" class="pull-to-refresh">
+        ↓ Pull to refresh
+    </div>
+    
+    <!-- App Header -->
+    <header class="app-header">
+        <div class="header-content">
+            <div class="app-logo">
+                <span class="logo-icon">🛡️</span>
+                <span>WBS Mobile</span>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" onclick="showNotifications()">🔔</button>
+                <button class="icon-btn" onclick="showSettings()">⚙️</button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="spinner"></div>
+        </div>
+        
+        <!-- Alerts -->
+        <div id="alertSuccess" class="alert alert-success">
+            <strong>✅ Success!</strong>
+            <p id="successMessage"></p>
+        </div>
+        
+        <div id="alertError" class="alert alert-error">
+            <strong>❌ Error!</strong>
+            <p id="errorMessage"></p>
+        </div>
+        
+        <!-- Home Screen -->
+        <div id="homeScreen" class="screen active">
+            <div class="quick-actions">
+                <div class="action-card" onclick="showScreen('reportScreen')">
+                    <div class="action-icon">📝</div>
+                    <div class="action-title">New Report</div>
+                </div>
+                <div class="action-card" onclick="showScreen('statusScreen')">
+                    <div class="action-icon">🔍</div>
+                    <div class="action-title">Check Status</div>
+                </div>
+                <div class="action-card" onclick="showScreen('dashboardScreen')">
+                    <div class="action-icon">📊</div>
+                    <div class="action-title">Dashboard</div>
+                </div>
+                <div class="action-card" onclick="showScreen('helpScreen')">
+                    <div class="action-icon">❓</div>
+                    <div class="action-title">Help</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">
+                    <span>📈</span>
+                    Quick Stats
+                </h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalCases">0</div>
+                        <div class="stat-label">Total Cases</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="activeCases">0</div>
+                        <div class="stat-label">Active</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="resolvedCases">0</div>
+                        <div class="stat-label">Resolved</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="complianceScore">0%</div>
+                        <div class="stat-label">Compliance</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3 class="card-title">
+                    <span>📋</span>
+                    Recent Cases
+                </h3>
+                <div class="case-list" id="recentCases">
+                    <div class="case-item">
+                        <div class="case-info">
+                            <h4>Loading...</h4>
+                            <p>Fetching data...</p>
+                        </div>
+                        <span class="badge badge-medium">...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Report Screen -->
+        <div id="reportScreen" class="screen">
+            <div class="card">
+                <h3 class="card-title">
+                    <span>📝</span>
+                    Submit Report
+                </h3>
+                
+                <form id="reportForm">
+                    <div class="form-group">
+                        <label for="reportType">
+                            Report Type <span class="required">*</span>
+                        </label>
+                        <select id="reportType" required>
+                            <option value="">-- Select Type --</option>
+                            <option value="Corruption">Corruption</option>
+                            <option value="Fraud">Fraud</option>
+                            <option value="Harassment">Harassment</option>
+                            <option value="Safety">Safety Violation</option>
+                            <option value="Ethics">Ethics Violation</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="priority">
+                            Priority <span class="required">*</span>
+                        </label>
+                        <select id="priority" required>
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                            <option value="Critical">Critical</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="department">Department</label>
+                        <input type="text" id="department" placeholder="e.g., Finance, HR">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">
+                            Description <span class="required">*</span>
+                        </label>
+                        <textarea id="description" required placeholder="Describe the incident..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="anonymous" checked>
+                            Submit Anonymously
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span>📤</span>
+                        Submit Report
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Status Screen -->
+        <div id="statusScreen" class="screen">
+            <div class="card">
+                <h3 class="card-title">
+                    <span>🔍</span>
+                    Check Status
+                </h3>
+                
+                <div class="form-group">
+                    <label for="caseId">Case ID</label>
+                    <input type="text" id="caseId" placeholder="e.g., WBS-202501-ABC123">
+                </div>
+                
+                <button class="btn btn-primary" onclick="checkStatus()">
+                    <span>🔍</span>
+                    Check Status
+                </button>
+                
+                <div id="statusResult" style="margin-top: 1.5rem; display: none;">
+                    <h4>Case Details:</h4>
+                    <div class="case-item">
+                        <div class="case-info">
+                            <h4 id="statusCaseId">-</h4>
+                            <p id="statusInfo">-</p>
+                        </div>
+                        <span id="statusBadge" class="badge">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dashboard Screen -->
+        <div id="dashboardScreen" class="screen">
+            <div class="card">
+                <h3 class="card-title">
+                    <span>📊</span>
+                    Dashboard
+                </h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="dashTotal">0</div>
+                        <div class="stat-label">Total Cases</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="dashActive">0</div>
+                        <div class="stat-label">Active</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="dashResolved">0</div>
+                        <div class="stat-label">Resolved</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="dashCompliance">0%</div>
+                        <div class="stat-label">Compliance</div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-secondary" onclick="refreshDashboard()">
+                    <span>🔄</span>
+                    Refresh Data
+                </button>
+            </div>
+        </div>
+        
+        <!-- Help Screen -->
+        <div id="helpScreen" class="screen">
+            <div class="card">
+                <h3 class="card-title">
+                    <span>❓</span>
+                    Help & Support
+                </h3>
+                
+                <h4>How to Use:</h4>
+                <ol style="padding-left: 1.5rem; margin: 1rem 0;">
+                    <li>Submit reports anonymously</li>
+                    <li>Track case status with ID</li>
+                    <li>View dashboard statistics</li>
+                    <li>Get notifications on updates</li>
+                </ol>
+                
+                <h4>Contact:</h4>
+                <p>📞 Hotline: 0800-ETHICS</p>
+                <p>📧 Email: wbs@company.com</p>
+                
+                <h4>App Version:</h4>
+                <p>Version 1.0.0 (PWA)</p>
+                <p id="installStatus">Installation Status: Checking...</p>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-container">
+            <a href="#" class="nav-item active" onclick="showScreen('homeScreen'); return false;">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Home</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showScreen('reportScreen'); return false;">
+                <span class="nav-icon">📝</span>
+                <span class="nav-label">Report</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showScreen('statusScreen'); return false;">
+                <span class="nav-icon">🔍</span>
+                <span class="nav-label">Status</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showScreen('dashboardScreen'); return false;">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Stats</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showScreen('helpScreen'); return false;">
+                <span class="nav-icon">❓</span>
+                <span class="nav-label">Help</span>
+            </a>
+        </div>
+    </nav>
+    
+    <!-- Install Prompt -->
+    <div id="installPrompt" class="install-prompt">
+        <h4>📱 Install WBS App</h4>
+        <p>Add to home screen for quick access</p>
+        <button class="btn btn-primary" onclick="installApp()">Install Now</button>
+        <button class="btn btn-secondary" onclick="dismissInstall()">Later</button>
+    </div>
+    
+    <script>
+        // Configuration
+        const API_BASE = 'https://mshadiant0.app.n8n.cloud/webhook';
+        
+        // PWA Install
+        let deferredPrompt;
+        let isInstalled = false;
+        
+        // Check if app is installed
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+            isInstalled = true;
+            document.getElementById('installStatus').textContent = 'Installation Status: Installed ✅';
+        }
+        
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker registration failed'));
+        }
+        
+        // Install Prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (!isInstalled) {
+                setTimeout(() => {
+                    document.getElementById('installPrompt').classList.add('show');
+                }, 3000);
+            }
+        });
+        
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted install');
+                    }
+                    deferredPrompt = null;
+                    document.getElementById('installPrompt').classList.remove('show');
+                });
+            }
+        }
+        
+        function dismissInstall() {
+            document.getElementById('installPrompt').classList.remove('show');
+        }
+        
+        // Navigation
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show selected screen
+            document.getElementById(screenId).classList.add('active');
+            
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Set active nav
+            const navMap = {
+                'homeScreen': 0,
+                'reportScreen': 1,
+                'statusScreen': 2,
+                'dashboardScreen': 3,
+                'helpScreen': 4
+            };
+            
+            document.querySelectorAll('.nav-item')[navMap[screenId]].classList.add('active');
+            
+            // Load data if needed
+            if (screenId === 'homeScreen') {
+                loadHomeData();
+            } else if (screenId === 'dashboardScreen') {
+                loadDashboard();
+            }
+        }
+        
+        // Form Submission
+        document.getElementById('reportForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoading(true);
+            
+            const formData = {
+                reportType: document.getElementById('reportType').value,
+                priority: document.getElementById('priority').value,
+                department: document.getElementById('department').value,
+                description: document.getElementById('description').value,
+                anonymous: document.getElementById('anonymous').checked,
+                channel: 'PWA Mobile',
+                timestamp: new Date().toISOString()
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/wbs-submit`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                showLoading(false);
+                
+                if (response.ok) {
+                    showAlert('success', `Report submitted! Case ID: ${result.caseId}`);
+                    document.getElementById('reportForm').reset();
+                    
+                    // Save to local storage
+                    const cases = JSON.parse(localStorage.getItem('myCases') || '[]');
+                    cases.push({
+                        caseId: result.caseId,
+                        date: new Date().toISOString(),
+                        type: formData.reportType,
+                        priority: formData.priority
+                    });
+                    localStorage.setItem('myCases', JSON.stringify(cases));
+                    
+                    // Vibrate on success
+                    if (navigator.vibrate) {
+                        navigator.vibrate(200);
+                    }
+                    
+                    setTimeout(() => showScreen('homeScreen'), 2000);
+                }
+            } catch (error) {
+                showLoading(false);
+                showAlert('error', 'Failed to submit. Please try again.');
+            }
+        });
+        
+        // Check Status
+        async function checkStatus() {
+            const caseId = document.getElementById('caseId').value;
+            if (!caseId) {
+                showAlert('error', 'Please enter Case ID');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_BASE}/wbs-status?caseId=${caseId}`);
+                const result = await response.json();
+                
+                showLoading(false);
+                
+                if (result.success) {
+                    const data = result.data;
+                    document.getElementById('statusCaseId').textContent = data.caseId;
+                    document.getElementById('statusInfo').textContent = `Status: ${data.status} | Assigned: ${data.assignedTo}`;
+                    document.getElementById('statusBadge').textContent = data.priority;
+                    document.getElementById('statusBadge').className = `badge badge-${data.priority.toLowerCase()}`;
+                    document.getElementById('statusResult').style.display = 'block';
+                } else {
+                    showAlert('error', 'Case not found');
+                }
+            } catch (error) {
+                showLoading(false);
+                showAlert('error', 'Error checking status');
+            }
+        }
+        
+        // Load Home Data
+        async function loadHomeData() {
+            try {
+                const response = await fetch(`${API_BASE}/wbs-dashboard`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('totalCases').textContent = data.summary.totalCases;
+                    document.getElementById('activeCases').textContent = data.summary.activeCases;
+                    document.getElementById('resolvedCases').textContent = data.summary.resolvedThisMonth;
+                    document.getElementById('complianceScore').textContent = data.summary.complianceScore + '%';
+                    
+                    // Recent cases
+                    const casesHtml = data.recentCases.map(c => `
+                        <div class="case-item">
+                            <div class="case-info">
+                                <h4>${c.caseId}</h4>
+                                <p>${c.type} - ${c.status}</p>
+                            </div>
+                            <span class="badge badge-${c.priority.toLowerCase()}">${c.priority}</span>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('recentCases').innerHTML = casesHtml;
+                }
+            } catch (error) {
+                console.error('Error loading home data:', error);
+            }
+        }
+        
+        // Load Dashboard
+        async function loadDashboard() {
+            showLoading(true);
+            
+            try {
+                const response = await fetch(`${API_BASE}/wbs-dashboard`);
+                const data = await response.json();
+                
+                showLoading(false);
+                
+                if (data.success) {
+                    document.getElementById('dashTotal').textContent = data.summary.totalCases;
+                    document.getElementById('dashActive').textContent = data.summary.activeCases;
+                    document.getElementById('dashResolved').textContent = data.summary.resolvedThisMonth;
+                    document.getElementById('dashCompliance').textContent = data.summary.complianceScore + '%';
+                }
+            } catch (error) {
+                showLoading(false);
+                showAlert('error', 'Failed to load dashboard');
+            }
+        }
+        
+        function refreshDashboard() {
+            loadDashboard();
+            showAlert('success', 'Dashboard refreshed');
+        }
+        
+        // Utilities
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('show', show);
+        }
+        
+        function showAlert(type, message) {
+            const alertId = type === 'success' ? 'alertSuccess' : 'alertError';
+            const messageId = type === 'success' ? 'successMessage' : 'errorMessage';
+            
+            document.getElementById(messageId).textContent = message;
+            document.getElementById(alertId).classList.add('show');
+            
+            setTimeout(() => {
+                document.getElementById(alertId).classList.remove('show');
+            }, 3000);
+        }
+        
+        function showNotifications() {
+            showAlert('success', 'No new notifications');
+        }
+        
+        function showSettings() {
+            showScreen('helpScreen');
+        }
+        
+        // Offline Detection
+        window.addEventListener('online', () => {
+            document.getElementById('offlineBanner').classList.remove('show');
+            loadHomeData();
+        });
+        
+        window.addEventListener('offline', () => {
+            document.getElementById('offlineBanner').classList.add('show');
+        });
+        
+        // Pull to Refresh
+        let startY = 0;
+        let pulling = false;
+        
+        document.addEventListener('touchstart', (e) => {
+            if (window.scrollY === 0) {
+                startY = e.touches[0].pageY;
+                pulling = true;
+            }
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (!pulling) return;
+            
+            const y = e.touches[0].pageY;
+            const diff = y - startY;
+            
+            if (diff > 50) {
+                document.getElementById('pullToRefresh').classList.add('show');
+            }
+        });
+        
+        document.addEventListener('touchend', () => {
+            if (pulling) {
+                pulling = false;
+                document.getElementById('pullToRefresh').classList.remove('show');
+                
+                // Refresh current screen
+                const activeScreen = document.querySelector('.screen.active').id;
+                if (activeScreen === 'homeScreen') {
+                    loadHomeData();
+                } else if (activeScreen === 'dashboardScreen') {
+                    loadDashboard();
+                }
+            }
+        });
+        
+        // Initialize
+        loadHomeData();
+        
+        // App installed event
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA installed');
+            document.getElementById('installStatus').textContent = 'Installation Status: Installed ✅';
+        });
+    </script>
+</body>
+</html>
